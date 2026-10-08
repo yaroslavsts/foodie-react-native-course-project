@@ -1,27 +1,719 @@
-import React,{useEffect,useState} from 'react';
-import {View,Text,ScrollView,Image,TextInput,Pressable,StyleSheet,Modal,Platform,BackHandler,KeyboardAvoidingView} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker';
-import {seedRecipes,categories} from './recipes';
-const KEY='foodie-draft-v1';
-const blank={name:'',category:'Breakfast',image:'',ingredients:'',instructions:'',time:'20',servings:'2',calories:'300',difficulty:'Easy'};
-function Button({children,onPress,secondary=false,disabled=false,label}){return <Pressable accessibilityRole="button" accessibilityLabel={label||children} disabled={disabled} onPress={onPress} style={[s.button,secondary&&s.secondary,disabled&&s.disabled]}><Text style={[s.buttonText,secondary&&s.secondaryText]}>{children}</Text></Pressable>;}
-function RecipeImage({uri,style}){return <Image source={typeof uri==='number'?uri:{uri}} style={style} accessibilityLabel="Recipe dish"/>;}
-export default function App(){
- const [own,setOwn]=useState([]),[favorites,setFavorites]=useState([]),[ready,setReady]=useState(false),[storageError,setStorageError]=useState('');
- const [stack,setStack]=useState([{screen:'feed'}]),[category,setCategory]=useState('All'),[form,setForm]=useState(blank),[error,setError]=useState(''),[deleting,setDeleting]=useState(null);
- const route=stack[stack.length-1]; const recipes=[...seedRecipes,...own]; const selected=recipes.find(r=>r.id===route.id);
- useEffect(()=>{let active=true;AsyncStorage.getItem(KEY).then(raw=>{if(!active)return;if(raw){const d=JSON.parse(raw);if(!Array.isArray(d.own)||!Array.isArray(d.favorites))throw Error('Invalid saved data');setOwn(d.own);setFavorites(d.favorites);}setReady(true);}).catch(()=>{if(active){setStorageError('Saved data could not be read. Changes are disabled to protect it.');}});return()=>{active=false;};},[]);
- useEffect(()=>{if(!ready)return;AsyncStorage.setItem(KEY,JSON.stringify({own,favorites})).catch(()=>setStorageError('Changes could not be saved. Keep the app open and check storage.'));},[ready,own,favorites]);
- function go(next){setStack(v=>[...v,next]);setError('');}
- function back(){setStack(v=>v.length>1?v.slice(0,-1):v);setError('');}
- useEffect(()=>{if(Platform.OS==='web')return;const sub=BackHandler.addEventListener('hardwareBackPress',()=>{if(stack.length<=1)return false;setStack(v=>v.slice(0,-1));return true;});return()=>sub.remove();},[stack.length]);
- function startForm(recipe){setForm(recipe?{...recipe,ingredients:recipe.ingredients.join('\n'),instructions:recipe.instructions.join('\n'),time:String(recipe.time),servings:String(recipe.servings),calories:String(recipe.calories)}:{...blank});go({screen:'form',id:recipe?.id});}
- async function pick(){try{const result=await ImagePicker.launchImageLibraryAsync({mediaTypes:['images'],base64:true,quality:.5});if(!result.canceled){const a=result.assets[0];setForm(v=>({...v,image:a.base64?`data:${a.mimeType||'image/jpeg'};base64,${a.base64}`:a.uri}));}}catch{setError('Image selection failed. Try again.');}}
- function save(){const ingredients=form.ingredients.split('\n').map(v=>v.trim()).filter(Boolean),instructions=form.instructions.split('\n').map(v=>v.trim()).filter(Boolean);if(!form.name.trim()||!form.image||!ingredients.length||!instructions.length){setError('Add a name, image, at least one ingredient and one instruction.');return;}const time=Number(form.time),servings=Number(form.servings),calories=Number(form.calories);if(!Number.isFinite(time)||time<=0||!Number.isInteger(servings)||servings<=0||!Number.isFinite(calories)||calories<0){setError('Time must be positive, servings a positive whole number and calories zero or more.');return;}const recipe={...form,name:form.name.trim(),ingredients,instructions,time,servings,calories,id:route.id||`own-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,mine:true};setOwn(v=>route.id?v.map(r=>r.id===route.id?recipe:r):[recipe,...v]);setCategory('My Food');setStack([{screen:'feed'}]);setError('');}
- function toggle(id){if(!ready)return;setFavorites(v=>v.includes(id)?v.filter(x=>x!==id):[...v,id]);}
- function remove(){setOwn(v=>v.filter(r=>r.id!==deleting));setFavorites(v=>v.filter(id=>id!==deleting));setDeleting(null);setStack([{screen:'feed'}]);setCategory('My Food');}
- const shown=recipes.filter(r=>category==='All'||(category==='Favorites'?favorites.includes(r.id):category==='My Food'?r.mine:r.category===category));
- return <KeyboardAvoidingView style={s.app} behavior={Platform.OS==='ios'?'padding':undefined}><View style={s.header}><Button secondary onPress={back} disabled={stack.length===1}>Back</Button><Text style={s.brand}>Foodie</Text><Text style={s.sub}>Cook. Save. Share ideas.</Text></View>{storageError?<Text accessibilityRole="alert" style={s.error}>{storageError}</Text>:null}{!ready?<Text style={s.loading}>{storageError?'Storage needs attention.':'Loading your recipe collection…'}</Text>:route.screen==='feed'?<><ScrollView horizontal style={s.categories} contentContainerStyle={s.categoryContent}>{['All',...categories,'Favorites','My Food'].map(c=><Pressable key={c} accessibilityRole="button" accessibilityState={{selected:c===category}} onPress={()=>setCategory(c)} style={[s.chip,c===category&&s.activeChip]}><Text style={[s.chipText,c===category&&s.activeText]}>{c}</Text></Pressable>)}</ScrollView><ScrollView contentContainerStyle={s.content}><Text style={s.title}>{category==='My Food'?'My Recipes':category==='All'?'Discover delicious ideas':category}</Text>{category==='My Food'?<Button onPress={()=>startForm()}>Add New Recipe</Button>:null}{shown.length===0?<Text style={s.empty}>{category==='Favorites'?'Tap a heart on a recipe to save it here.':'No recipes yet. Add your first creation.'}</Text>:shown.map(r=><View key={r.id} style={s.card}><Pressable accessibilityRole="button" accessibilityLabel={`Open ${r.name}`} onPress={()=>go({screen:'details',id:r.id})}><RecipeImage uri={r.image} style={s.cover}/><View style={s.cardBody}><Text style={s.cardTitle}>{r.name}</Text><Text style={s.meta}>{r.category} · {r.time} min · {r.difficulty}</Text></View></Pressable>{r.mine?<View style={s.actions}><Button secondary onPress={()=>startForm(r)} label={`Edit ${r.name}`}>Edit</Button><Button secondary onPress={()=>setDeleting(r.id)} label={`Delete ${r.name}`}>Delete</Button></View>:null}</View>)}</ScrollView></>:route.screen==='details'&&selected?<ScrollView contentContainerStyle={s.content}><RecipeImage uri={selected.image} style={s.detailImage}/><Text style={s.title}>{selected.name}</Text><Button secondary label={`${favorites.includes(selected.id)?'Unfavorite':'Favorite'} ${selected.name}`} onPress={()=>toggle(selected.id)}>{favorites.includes(selected.id)?'♥ Saved to Favorites':'♡ Add to Favorites'}</Button><View style={s.facts}><Text>Preparation time: {selected.time} minutes</Text><Text>Servings: {selected.servings}</Text><Text>Calories per serving: {selected.calories}</Text><Text>Difficulty: {selected.difficulty}</Text></View><Text style={s.section}>Ingredients</Text>{selected.ingredients.map((v,i)=><Text key={i} style={s.line}>• {v}</Text>)}<Text style={s.section}>Instructions</Text>{selected.instructions.map((v,i)=><Text key={i} style={s.line}>{i+1}. {v}</Text>)}{selected.mine?<View style={s.actions}><Button onPress={()=>startForm(selected)}>Edit Recipe</Button><Button secondary onPress={()=>setDeleting(selected.id)}>Delete Recipe</Button></View>:null}</ScrollView>:route.screen==='form'?<ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}><Text style={s.title}>{route.id?'Edit Recipe':'Add New Recipe'}</Text>{[['name','Recipe name'],['ingredients','Ingredients — one per line'],['instructions','Instructions — one step per line'],['time','Preparation time (minutes)'],['servings','Servings'],['calories','Calories per serving']].map(([key,label])=><View key={key}><Text style={s.label}>{label}</Text><TextInput accessibilityLabel={label} style={[s.input,['ingredients','instructions'].includes(key)&&s.multiline]} multiline={['ingredients','instructions'].includes(key)} keyboardType={['time','servings','calories'].includes(key)?'numeric':'default'} value={form[key]} onChangeText={value=>setForm(v=>({...v,[key]:value}))}/></View>)}<Text style={s.label}>Category</Text><ScrollView horizontal>{categories.map(c=><Pressable key={c} accessibilityRole="button" onPress={()=>setForm(v=>({...v,category:c}))} style={[s.chip,c===form.category&&s.activeChip]}><Text style={c===form.category?s.activeText:s.chipText}>{c}</Text></Pressable>)}</ScrollView><Text style={s.label}>Difficulty</Text><View style={s.actions}>{['Easy','Medium','Hard'].map(d=><Button key={d} secondary={form.difficulty!==d} onPress={()=>setForm(v=>({...v,difficulty:d}))}>{d}</Button>)}</View>{form.image?<RecipeImage uri={form.image} style={s.detailImage}/>:null}<Button secondary onPress={pick}>Upload Image</Button>{error?<Text accessibilityRole="alert" style={s.error}>{error}</Text>:null}<Button onPress={save}>Save Recipe</Button></ScrollView>:<Text style={s.empty}>Recipe unavailable. Use Back.</Text>}<Modal visible={Boolean(deleting)} transparent animationType="fade" onRequestClose={()=>setDeleting(null)}><View style={s.overlay}><View style={s.dialog}><Text style={s.section}>Delete this recipe?</Text><Text>This removes it from My Recipes and Favorites.</Text><View style={s.actions}><Button secondary onPress={()=>setDeleting(null)}>Cancel</Button><Button onPress={remove}>Confirm Delete</Button></View></View></View></Modal></KeyboardAvoidingView>;
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Modal,
+  Platform,
+  BackHandler,
+  KeyboardAvoidingView,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { seedRecipes, categories } from "./recipes";
+const KEY = "foodie-draft-v1";
+const blank = {
+  name: "",
+  category: "Breakfast",
+  image: "",
+  ingredients: "",
+  instructions: "",
+  time: "20",
+  servings: "2",
+  calories: "300",
+  difficulty: "Easy",
+};
+function Button({
+  children,
+  onPress,
+  secondary = false,
+  disabled = false,
+  label,
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label || children}
+      disabled={disabled}
+      onPress={onPress}
+      style={[s.button, secondary && s.secondary, disabled && s.disabled]}
+    >
+      <Text style={[s.buttonText, secondary && s.secondaryText]}>
+        {children}
+      </Text>
+    </Pressable>
+  );
 }
-const s=StyleSheet.create({app:{flex:1,backgroundColor:'#faf7f0',paddingTop:Platform.OS==='ios'?48:24},header:{flexDirection:'row',alignItems:'center',gap:14,padding:18,backgroundColor:'#fff'},brand:{fontSize:30,fontWeight:'800',color:'#b94a28'},sub:{fontSize:13,color:'#6c645e',flex:1},button:{backgroundColor:'#b94a28',paddingVertical:13,paddingHorizontal:18,borderRadius:12,marginVertical:6,alignItems:'center'},buttonText:{color:'white',fontWeight:'700',fontSize:15},secondary:{backgroundColor:'#f1e7df'},secondaryText:{color:'#733d27'},disabled:{opacity:.35},categories:{flexGrow:0,maxHeight:66},categoryContent:{gap:9,padding:14},chip:{paddingVertical:10,paddingHorizontal:17,borderRadius:24,backgroundColor:'#ede7dc',marginRight:8},activeChip:{backgroundColor:'#315d48'},chipText:{color:'#4c5548',fontWeight:'600'},activeText:{color:'white',fontWeight:'600'},content:{width:'100%',maxWidth:720,alignSelf:'center',padding:20,paddingBottom:50},title:{fontSize:29,fontWeight:'800',color:'#332c26',marginBottom:18,marginTop:6},card:{backgroundColor:'white',borderRadius:18,overflow:'hidden',marginBottom:22,borderWidth:1,borderColor:'#e7dfd5'},cover:{width:'100%',height:210,resizeMode:'cover'},cardBody:{padding:17},cardTitle:{fontSize:23,fontWeight:'700',color:'#332c26'},meta:{color:'#716c62',marginTop:8},actions:{flexDirection:'row',gap:12,padding:10,flexWrap:'wrap'},detailImage:{width:'100%',height:230,borderRadius:16,marginBottom:20},facts:{backgroundColor:'#ecefe2',padding:18,gap:10,borderRadius:13,marginVertical:18},section:{fontSize:22,fontWeight:'700',marginTop:18,marginBottom:12},line:{fontSize:17,lineHeight:27,marginBottom:8},label:{fontSize:15,fontWeight:'600',marginTop:15,marginBottom:8},input:{borderWidth:1,borderColor:'#ccbfb1',borderRadius:10,padding:13,fontSize:17,backgroundColor:'white'},multiline:{minHeight:110,textAlignVertical:'top'},error:{color:'#9c2222',backgroundColor:'#ffe7e2',padding:13,marginVertical:10},empty:{fontSize:18,lineHeight:28,paddingVertical:28,color:'#756d62'},loading:{padding:30,fontSize:18},overlay:{flex:1,backgroundColor:'#0007',justifyContent:'center',padding:25},dialog:{backgroundColor:'white',padding:22,borderRadius:18,maxWidth:480,width:'100%',alignSelf:'center'}});
+function RecipeImage({ uri, style }) {
+  return (
+    <Image
+      source={
+        typeof uri === "number"
+          ? uri
+          : {
+              uri,
+            }
+      }
+      style={style}
+      accessibilityLabel="Recipe dish"
+    />
+  );
+}
+export default function App() {
+  const [own, setOwn] = useState([]),
+    [favorites, setFavorites] = useState([]),
+    [ready, setReady] = useState(false),
+    [storageError, setStorageError] = useState("");
+  const [stack, setStack] = useState([
+      {
+        screen: "feed",
+      },
+    ]),
+    [category, setCategory] = useState("All"),
+    [form, setForm] = useState(blank),
+    [error, setError] = useState(""),
+    [deleting, setDeleting] = useState(null);
+  const route = stack[stack.length - 1];
+  const recipes = [...seedRecipes, ...own];
+  const selected = recipes.find((r) => r.id === route.id);
+  useEffect(() => {
+    let active = true;
+    AsyncStorage.getItem(KEY)
+      .then((raw) => {
+        if (!active) return;
+        if (raw) {
+          const d = JSON.parse(raw);
+          if (!Array.isArray(d.own) || !Array.isArray(d.favorites))
+            throw Error("Invalid saved data");
+          setOwn(d.own);
+          setFavorites(d.favorites);
+        }
+        setReady(true);
+      })
+      .catch(() => {
+        if (active) {
+          setStorageError(
+            "Saved data could not be read. Changes are disabled to protect it.",
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!ready) return;
+    AsyncStorage.setItem(
+      KEY,
+      JSON.stringify({
+        own,
+        favorites,
+      }),
+    ).catch(() =>
+      setStorageError(
+        "Changes could not be saved. Keep the app open and check storage.",
+      ),
+    );
+  }, [ready, own, favorites]);
+  function go(next) {
+    setStack((v) => [...v, next]);
+    setError("");
+  }
+  function back() {
+    setStack((v) => (v.length > 1 ? v.slice(0, -1) : v));
+    setError("");
+  }
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (stack.length <= 1) return false;
+      setStack((v) => v.slice(0, -1));
+      return true;
+    });
+    return () => sub.remove();
+  }, [stack.length]);
+  function startForm(recipe) {
+    setForm(
+      recipe
+        ? {
+            ...recipe,
+            ingredients: recipe.ingredients.join("\n"),
+            instructions: recipe.instructions.join("\n"),
+            time: String(recipe.time),
+            servings: String(recipe.servings),
+            calories: String(recipe.calories),
+          }
+        : {
+            ...blank,
+          },
+    );
+    go({
+      screen: "form",
+      id: recipe?.id,
+    });
+  }
+  async function pick() {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        base64: true,
+        quality: 0.5,
+      });
+      if (!result.canceled) {
+        const a = result.assets[0];
+        setForm((v) => ({
+          ...v,
+          image: a.base64
+            ? `data:${a.mimeType || "image/jpeg"};base64,${a.base64}`
+            : a.uri,
+        }));
+      }
+    } catch {
+      setError("Image selection failed. Try again.");
+    }
+  }
+  function save() {
+    const ingredients = form.ingredients
+        .split("\n")
+        .map((v) => v.trim())
+        .filter(Boolean),
+      instructions = form.instructions
+        .split("\n")
+        .map((v) => v.trim())
+        .filter(Boolean);
+    if (
+      !form.name.trim() ||
+      !form.image ||
+      !ingredients.length ||
+      !instructions.length
+    ) {
+      setError(
+        "Add a name, image, at least one ingredient and one instruction.",
+      );
+      return;
+    }
+    const time = Number(form.time),
+      servings = Number(form.servings),
+      calories = Number(form.calories);
+    if (
+      !Number.isFinite(time) ||
+      time <= 0 ||
+      !Number.isInteger(servings) ||
+      servings <= 0 ||
+      !Number.isFinite(calories) ||
+      calories < 0
+    ) {
+      setError(
+        "Time must be positive, servings a positive whole number and calories zero or more.",
+      );
+      return;
+    }
+    const recipe = {
+      ...form,
+      name: form.name.trim(),
+      ingredients,
+      instructions,
+      time,
+      servings,
+      calories,
+      id:
+        route.id ||
+        `own-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      mine: true,
+    };
+    setOwn((v) =>
+      route.id
+        ? v.map((r) => (r.id === route.id ? recipe : r))
+        : [recipe, ...v],
+    );
+    setCategory("My Food");
+    setStack([
+      {
+        screen: "feed",
+      },
+    ]);
+    setError("");
+  }
+  function toggle(id) {
+    if (!ready) return;
+    setFavorites((v) =>
+      v.includes(id) ? v.filter((x) => x !== id) : [...v, id],
+    );
+  }
+  function remove() {
+    setOwn((v) => v.filter((r) => r.id !== deleting));
+    setFavorites((v) => v.filter((id) => id !== deleting));
+    setDeleting(null);
+    setStack([
+      {
+        screen: "feed",
+      },
+    ]);
+    setCategory("My Food");
+  }
+  const shown = recipes.filter(
+    (r) =>
+      category === "All" ||
+      (category === "Favorites"
+        ? favorites.includes(r.id)
+        : category === "My Food"
+          ? r.mine
+          : r.category === category),
+  );
+  return (
+    <KeyboardAvoidingView
+      style={s.app}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={s.header}>
+        <Button secondary onPress={back} disabled={stack.length === 1}>
+          Back
+        </Button>
+        <Text style={s.brand}>Foodie</Text>
+        <Text style={s.sub}>Cook. Save. Share ideas.</Text>
+      </View>
+      {storageError ? (
+        <Text accessibilityRole="alert" style={s.error}>
+          {storageError}
+        </Text>
+      ) : null}
+      {!ready ? (
+        <Text style={s.loading}>
+          {storageError
+            ? "Storage needs attention."
+            : "Loading your recipe collection…"}
+        </Text>
+      ) : route.screen === "feed" ? (
+        <>
+          <ScrollView
+            horizontal
+            style={s.categories}
+            contentContainerStyle={s.categoryContent}
+          >
+            {["All", ...categories, "Favorites", "My Food"].map((c) => (
+              <Pressable
+                key={c}
+                accessibilityRole="button"
+                accessibilityState={{
+                  selected: c === category,
+                }}
+                onPress={() => setCategory(c)}
+                style={[s.chip, c === category && s.activeChip]}
+              >
+                <Text style={[s.chipText, c === category && s.activeText]}>
+                  {c}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+          <ScrollView contentContainerStyle={s.content}>
+            <Text style={s.title}>
+              {category === "My Food"
+                ? "My Recipes"
+                : category === "All"
+                  ? "Discover delicious ideas"
+                  : category}
+            </Text>
+            {category === "My Food" ? (
+              <Button onPress={() => startForm()}>Add New Recipe</Button>
+            ) : null}
+            {shown.length === 0 ? (
+              <Text style={s.empty}>
+                {category === "Favorites"
+                  ? "Tap a heart on a recipe to save it here."
+                  : "No recipes yet. Add your first creation."}
+              </Text>
+            ) : (
+              shown.map((r) => (
+                <View key={r.id} style={s.card}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open ${r.name}`}
+                    onPress={() =>
+                      go({
+                        screen: "details",
+                        id: r.id,
+                      })
+                    }
+                  >
+                    <RecipeImage uri={r.image} style={s.cover} />
+                    <View style={s.cardBody}>
+                      <Text style={s.cardTitle}>{r.name}</Text>
+                      <Text style={s.meta}>
+                        {r.category} · {r.time} min · {r.difficulty}
+                      </Text>
+                    </View>
+                  </Pressable>
+                  {r.mine ? (
+                    <View style={s.actions}>
+                      <Button
+                        secondary
+                        onPress={() => startForm(r)}
+                        label={`Edit ${r.name}`}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        secondary
+                        onPress={() => setDeleting(r.id)}
+                        label={`Delete ${r.name}`}
+                      >
+                        Delete
+                      </Button>
+                    </View>
+                  ) : null}
+                </View>
+              ))
+            )}
+          </ScrollView>
+        </>
+      ) : route.screen === "details" && selected ? (
+        <ScrollView contentContainerStyle={s.content}>
+          <RecipeImage uri={selected.image} style={s.detailImage} />
+          <Text style={s.title}>{selected.name}</Text>
+          <Button
+            secondary
+            label={`${favorites.includes(selected.id) ? "Unfavorite" : "Favorite"} ${selected.name}`}
+            onPress={() => toggle(selected.id)}
+          >
+            {favorites.includes(selected.id)
+              ? "♥ Saved to Favorites"
+              : "♡ Add to Favorites"}
+          </Button>
+          <View style={s.facts}>
+            <Text>Preparation time: {selected.time} minutes</Text>
+            <Text>Servings: {selected.servings}</Text>
+            <Text>Calories per serving: {selected.calories}</Text>
+            <Text>Difficulty: {selected.difficulty}</Text>
+          </View>
+          <Text style={s.section}>Ingredients</Text>
+          {selected.ingredients.map((v, i) => (
+            <Text key={i} style={s.line}>
+              • {v}
+            </Text>
+          ))}
+          <Text style={s.section}>Instructions</Text>
+          {selected.instructions.map((v, i) => (
+            <Text key={i} style={s.line}>
+              {i + 1}. {v}
+            </Text>
+          ))}
+          {selected.mine ? (
+            <View style={s.actions}>
+              <Button onPress={() => startForm(selected)}>Edit Recipe</Button>
+              <Button secondary onPress={() => setDeleting(selected.id)}>
+                Delete Recipe
+              </Button>
+            </View>
+          ) : null}
+        </ScrollView>
+      ) : route.screen === "form" ? (
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={s.content}
+        >
+          <Text style={s.title}>
+            {route.id ? "Edit Recipe" : "Add New Recipe"}
+          </Text>
+          {[
+            ["name", "Recipe name"],
+            ["ingredients", "Ingredients — one per line"],
+            ["instructions", "Instructions — one step per line"],
+            ["time", "Preparation time (minutes)"],
+            ["servings", "Servings"],
+            ["calories", "Calories per serving"],
+          ].map(([key, label]) => (
+            <View key={key}>
+              <Text style={s.label}>{label}</Text>
+              <TextInput
+                accessibilityLabel={label}
+                style={[
+                  s.input,
+                  ["ingredients", "instructions"].includes(key) && s.multiline,
+                ]}
+                multiline={["ingredients", "instructions"].includes(key)}
+                keyboardType={
+                  ["time", "servings", "calories"].includes(key)
+                    ? "numeric"
+                    : "default"
+                }
+                value={form[key]}
+                onChangeText={(value) =>
+                  setForm((v) => ({
+                    ...v,
+                    [key]: value,
+                  }))
+                }
+              />
+            </View>
+          ))}
+          <Text style={s.label}>Category</Text>
+          <ScrollView horizontal>
+            {categories.map((c) => (
+              <Pressable
+                key={c}
+                accessibilityRole="button"
+                onPress={() =>
+                  setForm((v) => ({
+                    ...v,
+                    category: c,
+                  }))
+                }
+                style={[s.chip, c === form.category && s.activeChip]}
+              >
+                <Text style={c === form.category ? s.activeText : s.chipText}>
+                  {c}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+          <Text style={s.label}>Difficulty</Text>
+          <View style={s.actions}>
+            {["Easy", "Medium", "Hard"].map((d) => (
+              <Button
+                key={d}
+                secondary={form.difficulty !== d}
+                onPress={() =>
+                  setForm((v) => ({
+                    ...v,
+                    difficulty: d,
+                  }))
+                }
+              >
+                {d}
+              </Button>
+            ))}
+          </View>
+          {form.image ? (
+            <RecipeImage uri={form.image} style={s.detailImage} />
+          ) : null}
+          <Button secondary onPress={pick}>
+            Upload Image
+          </Button>
+          {error ? (
+            <Text accessibilityRole="alert" style={s.error}>
+              {error}
+            </Text>
+          ) : null}
+          <Button onPress={save}>Save Recipe</Button>
+        </ScrollView>
+      ) : (
+        <Text style={s.empty}>Recipe unavailable. Use Back.</Text>
+      )}
+      <Modal
+        visible={Boolean(deleting)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleting(null)}
+      >
+        <View style={s.overlay}>
+          <View style={s.dialog}>
+            <Text style={s.section}>Delete this recipe?</Text>
+            <Text>This removes it from My Recipes and Favorites.</Text>
+            <View style={s.actions}>
+              <Button secondary onPress={() => setDeleting(null)}>
+                Cancel
+              </Button>
+              <Button onPress={remove}>Confirm Delete</Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </KeyboardAvoidingView>
+  );
+}
+const s = StyleSheet.create({
+  app: {
+    flex: 1,
+    backgroundColor: "#faf7f0",
+    paddingTop: Platform.OS === "ios" ? 48 : 24,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    padding: 18,
+    backgroundColor: "#fff",
+  },
+  brand: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: "#b94a28",
+  },
+  sub: {
+    fontSize: 13,
+    color: "#6c645e",
+    flex: 1,
+  },
+  button: {
+    backgroundColor: "#b94a28",
+    paddingVertical: 13,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    marginVertical: 6,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  secondary: {
+    backgroundColor: "#f1e7df",
+  },
+  secondaryText: {
+    color: "#733d27",
+  },
+  disabled: {
+    opacity: 0.35,
+  },
+  categories: {
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 74,
+  },
+  categoryContent: {
+    gap: 9,
+    paddingHorizontal: 14,
+    alignItems: "center",
+  },
+  chip: {
+    paddingVertical: 10,
+    paddingHorizontal: 17,
+    borderRadius: 24,
+    backgroundColor: "#ede7dc",
+    marginRight: 8,
+  },
+  activeChip: {
+    backgroundColor: "#315d48",
+  },
+  chipText: {
+    color: "#4c5548",
+    fontWeight: "600",
+  },
+  activeText: {
+    color: "white",
+    fontWeight: "600",
+  },
+  content: {
+    width: "100%",
+    maxWidth: 720,
+    alignSelf: "center",
+    padding: 20,
+    paddingBottom: 50,
+  },
+  title: {
+    fontSize: 29,
+    fontWeight: "800",
+    color: "#332c26",
+    marginBottom: 18,
+    marginTop: 6,
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 18,
+    overflow: "hidden",
+    marginBottom: 22,
+    borderWidth: 1,
+    borderColor: "#e7dfd5",
+  },
+  cover: {
+    width: "100%",
+    height: 210,
+    resizeMode: "cover",
+  },
+  cardBody: {
+    padding: 17,
+  },
+  cardTitle: {
+    fontSize: 23,
+    fontWeight: "700",
+    color: "#332c26",
+  },
+  meta: {
+    color: "#716c62",
+    marginTop: 8,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 12,
+    padding: 10,
+    flexWrap: "wrap",
+  },
+  detailImage: {
+    width: "100%",
+    height: 230,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+  facts: {
+    backgroundColor: "#ecefe2",
+    padding: 18,
+    gap: 10,
+    borderRadius: 13,
+    marginVertical: 18,
+  },
+  section: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginTop: 18,
+    marginBottom: 12,
+  },
+  line: {
+    fontSize: 17,
+    lineHeight: 27,
+    marginBottom: 8,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginTop: 15,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccbfb1",
+    borderRadius: 10,
+    padding: 13,
+    fontSize: 17,
+    backgroundColor: "white",
+  },
+  multiline: {
+    minHeight: 110,
+    textAlignVertical: "top",
+  },
+  error: {
+    color: "#9c2222",
+    backgroundColor: "#ffe7e2",
+    padding: 13,
+    marginVertical: 10,
+  },
+  empty: {
+    fontSize: 18,
+    lineHeight: 28,
+    paddingVertical: 28,
+    color: "#756d62",
+  },
+  loading: {
+    padding: 30,
+    fontSize: 18,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "#0007",
+    justifyContent: "center",
+    padding: 25,
+  },
+  dialog: {
+    backgroundColor: "white",
+    padding: 22,
+    borderRadius: 18,
+    maxWidth: 480,
+    width: "100%",
+    alignSelf: "center",
+  },
+});

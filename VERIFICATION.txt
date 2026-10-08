@@ -1,1 +1,20 @@
-Expo web export and Android/iOS JS+Hermes bundle exports passed. Web UI verified: 10 horizontal categories; Dinner filter; six recipe details; favorite toggle and reload persistence; invalid blank form rejection; generated image selection; save new recipe; edit name/category; reload preserves edit; confirm delete removes recipe. Native-device and Snack import tests pending. No public repository, publishing or submission.
+Foodie verification — 2026-10-08
+
+Expo SDK 54 dependency compatibility check: passed.
+Production exports for web, Android and iOS (Hermes bundles): passed.
+
+iOS simulator: iPhone 17 Pro, iOS 27.0, official Expo Go 54.0.7.
+Verified category filtering; recipe details; favorite and unfavorite;
+Favorites list; Back navigation; required-field validation; photo selection;
+create and open a personal recipe; edit its name and preparation time;
+persistence of personal recipes, photos and favorites after app termination
+and reopening; deletion of the test recipe through the confirmation dialog.
+
+Earlier web UI verification covered category filtering, details, favorites,
+form validation, image selection, create/edit/delete and reload persistence.
+
+Limitations:
+- Live Expo Snack import not verified: snack.expo.dev failed DNS resolution.
+- Android production bundle exported; Android emulator/device UI not tested.
+- No physical-device test or app-store release.
+- Course submission and peer reviews have not been performed by this check.

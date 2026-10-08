@@ -1,233 +1,242 @@
-export const categories=["Breakfast", "Lunch", "Dinner", "Salads", "Soups", "Pasta", "Desserts", "Snacks", "Vegan", "Drinks"];
-export const seedRecipes=[
+export const categories = [
+  "Breakfast",
+  "Lunch",
+  "Dinner",
+  "Salads",
+  "Soups",
+  "Pasta",
+  "Desserts",
+  "Snacks",
+  "Vegan",
+  "Drinks",
+];
+export const seedRecipes = [
   {
-    "id": "seed-0",
-    "name": "Berry Oat Bowl",
-    "category": "Breakfast",
-    "image": require("./assets/recipe-0.png"),
-    "ingredients": [
+    id: "seed-0",
+    name: "Berry Oat Bowl",
+    category: "Breakfast",
+    image: require("./assets/recipe-0.png"),
+    ingredients: [
       "1 cup rolled oats",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+      "2 cups milk",
+      "1 cup mixed berries",
+      "1 tablespoon honey",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Bring the milk to a gentle simmer in a saucepan.",
+      "Stir in the oats and cook for 5 minutes, stirring regularly.",
+      "Divide between two bowls and top with berries and honey.",
     ],
-    "time": 15,
-    "servings": 2,
-    "calories": 220,
-    "difficulty": "Easy",
-    "mine": false
+    time: 10,
+    servings: 2,
+    calories: 310,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-1",
-    "name": "Chickpea Wrap",
-    "category": "Lunch",
-    "image": require("./assets/recipe-1.png"),
-    "ingredients": [
-      "1 cup chickpeas",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-1",
+    name: "Chickpea Wrap",
+    category: "Lunch",
+    image: require("./assets/recipe-1.png"),
+    ingredients: [
+      "1 cup cooked chickpeas, drained",
+      "2 whole-wheat wraps",
+      "1 cup chopped cucumber and tomato",
+      "2 tablespoons plain yogurt",
+      "1 teaspoon lemon juice",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Mash the chickpeas lightly with the yogurt and lemon juice.",
+      "Divide the filling and vegetables between the wraps.",
+      "Fold the sides inward, roll tightly and slice in half.",
     ],
-    "time": 16,
-    "servings": 2,
-    "calories": 238,
-    "difficulty": "Easy",
-    "mine": false
+    time: 10,
+    servings: 2,
+    calories: 350,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-2",
-    "name": "Roasted Vegetable Rice",
-    "category": "Dinner",
-    "image": require("./assets/recipe-2.png"),
-    "ingredients": [
-      "1 cup cooked rice",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-2",
+    name: "Roasted Vegetable Rice",
+    category: "Dinner",
+    image: require("./assets/recipe-2.png"),
+    ingredients: [
+      "2 cups cooked rice",
+      "1 zucchini, diced",
+      "1 red pepper, diced",
+      "1 tablespoon olive oil",
+      "1 teaspoon dried oregano",
+      "Salt and pepper to taste",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Heat the oven to 200°C.",
+      "Toss the vegetables with oil, oregano, salt and pepper. Roast on a tray for 20 minutes, stirring halfway.",
+      "Warm the cooked rice and fold in the roasted vegetables. Serve hot.",
     ],
-    "time": 17,
-    "servings": 2,
-    "calories": 256,
-    "difficulty": "Easy",
-    "mine": false
+    time: 30,
+    servings: 2,
+    calories: 380,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-3",
-    "name": "Garden Salad",
-    "category": "Salads",
-    "image": require("./assets/recipe-3.png"),
-    "ingredients": [
-      "1 cup mixed greens",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-3",
+    name: "Garden Salad",
+    category: "Salads",
+    image: require("./assets/recipe-3.png"),
+    ingredients: [
+      "4 cups mixed salad leaves",
+      "1 cucumber, sliced",
+      "2 tomatoes, chopped",
+      "1 tablespoon olive oil",
+      "1 tablespoon lemon juice",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Wash and dry the leaves, cucumber and tomatoes.",
+      "Whisk together olive oil and lemon juice.",
+      "Toss the vegetables with the dressing just before serving.",
     ],
-    "time": 18,
-    "servings": 2,
-    "calories": 274,
-    "difficulty": "Easy",
-    "mine": false
+    time: 10,
+    servings: 2,
+    calories: 120,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-4",
-    "name": "Tomato Soup",
-    "category": "Soups",
-    "image": require("./assets/recipe-4.png"),
-    "ingredients": [
-      "1 cup chopped tomatoes",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-4",
+    name: "Tomato Soup",
+    category: "Soups",
+    image: require("./assets/recipe-4.png"),
+    ingredients: [
+      "1 tablespoon olive oil",
+      "1 small onion, chopped",
+      "400 g canned chopped tomatoes",
+      "2 cups vegetable stock",
+      "4 fresh basil leaves",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Soften the onion in olive oil over medium heat for 5 minutes.",
+      "Add tomatoes and stock, bring to a simmer and cook for 15 minutes.",
+      "Remove from the heat and blend carefully until smooth. Top with basil.",
     ],
-    "time": 19,
-    "servings": 2,
-    "calories": 292,
-    "difficulty": "Easy",
-    "mine": false
+    time: 25,
+    servings: 2,
+    calories: 180,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-5",
-    "name": "Lemon Herb Pasta",
-    "category": "Pasta",
-    "image": require("./assets/recipe-5.png"),
-    "ingredients": [
-      "1 cup pasta",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-5",
+    name: "Lemon Herb Pasta",
+    category: "Pasta",
+    image: require("./assets/recipe-5.png"),
+    ingredients: [
+      "180 g dry pasta",
+      "1 tablespoon olive oil",
+      "1 lemon, zest and juice",
+      "2 tablespoons chopped parsley",
+      "2 tablespoons grated Parmesan",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Cook the pasta according to its packet directions. Reserve half a cup of cooking water before draining.",
+      "Toss the warm pasta with olive oil, lemon zest, lemon juice and parsley.",
+      "Add a splash of the reserved water to loosen the sauce, then top with Parmesan.",
     ],
-    "time": 20,
-    "servings": 2,
-    "calories": 310,
-    "difficulty": "Easy",
-    "mine": false
+    time: 20,
+    servings: 2,
+    calories: 390,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-6",
-    "name": "Fruit Yogurt Parfait",
-    "category": "Desserts",
-    "image": require("./assets/recipe-6.png"),
-    "ingredients": [
-      "1 cup plain yogurt",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-6",
+    name: "Fruit Yogurt Parfait",
+    category: "Desserts",
+    image: require("./assets/recipe-6.png"),
+    ingredients: [
+      "1 cup plain Greek yogurt",
+      "1 cup sliced strawberries",
+      "4 tablespoons granola",
+      "2 teaspoons honey",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Divide half of the yogurt between two glasses.",
+      "Add half of the strawberries and granola, then repeat the layers.",
+      "Drizzle with honey and serve immediately.",
     ],
-    "time": 21,
-    "servings": 2,
-    "calories": 328,
-    "difficulty": "Easy",
-    "mine": false
+    time: 5,
+    servings: 2,
+    calories: 240,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-7",
-    "name": "Apple Nut Toast",
-    "category": "Snacks",
-    "image": require("./assets/recipe-7.png"),
-    "ingredients": [
-      "1 cup apple slices",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-7",
+    name: "Apple Nut Toast",
+    category: "Snacks",
+    image: require("./assets/recipe-7.png"),
+    ingredients: [
+      "2 slices whole-grain bread",
+      "2 tablespoons peanut butter",
+      "1 apple, thinly sliced",
+      "A pinch of cinnamon",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Toast the bread until golden.",
+      "Spread the peanut butter over the toast and arrange apple slices on top.",
+      "Sprinkle with cinnamon and serve.",
     ],
-    "time": 22,
-    "servings": 2,
-    "calories": 346,
-    "difficulty": "Easy",
-    "mine": false
+    time: 5,
+    servings: 2,
+    calories: 260,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-8",
-    "name": "Bean and Spinach Bowl",
-    "category": "Vegan",
-    "image": require("./assets/recipe-8.png"),
-    "ingredients": [
-      "1 cup white beans",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-8",
+    name: "Bean and Spinach Bowl",
+    category: "Vegan",
+    image: require("./assets/recipe-8.png"),
+    ingredients: [
+      "1 tablespoon olive oil",
+      "1 garlic clove, minced",
+      "1 can white beans, drained and rinsed",
+      "3 cups fresh spinach",
+      "1 teaspoon lemon juice",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Warm the olive oil in a pan and cook the garlic for 30 seconds.",
+      "Add the beans and stir until heated through, about 4 minutes.",
+      "Add spinach and cook until wilted. Finish with lemon juice and divide into bowls.",
     ],
-    "time": 23,
-    "servings": 2,
-    "calories": 364,
-    "difficulty": "Easy",
-    "mine": false
+    time: 15,
+    servings: 2,
+    calories: 290,
+    difficulty: "Easy",
+    mine: false,
   },
   {
-    "id": "seed-9",
-    "name": "Mint Lemon Cooler",
-    "category": "Drinks",
-    "image": require("./assets/recipe-9.png"),
-    "ingredients": [
-      "1 cup cold water",
-      "\u00bd cup fresh seasonal vegetables or fruit",
-      "1 teaspoon olive oil for savory dishes or honey for sweet dishes",
-      "Herbs or seasoning to taste"
+    id: "seed-9",
+    name: "Mint Lemon Cooler",
+    category: "Drinks",
+    image: require("./assets/recipe-9.png"),
+    ingredients: [
+      "2 tablespoons lemon juice",
+      "2 teaspoons sugar",
+      "8 mint leaves",
+      "2 cups sparkling water",
+      "Ice cubes",
     ],
-    "instructions": [
-      "Prepare and wash the ingredients.",
-      "Combine the main ingredient with the vegetables or fruit.",
-      "Cook savory ingredients until tender if needed; assemble cold dishes without cooking.",
-      "Season to taste, divide into servings and enjoy."
+    instructions: [
+      "Gently crush the mint with lemon juice and sugar in a jug.",
+      "Stir until the sugar dissolves, then add sparkling water.",
+      "Pour into two ice-filled glasses and serve.",
     ],
-    "time": 24,
-    "servings": 2,
-    "calories": 382,
-    "difficulty": "Easy",
-    "mine": false
-  }
+    time: 5,
+    servings: 2,
+    calories: 35,
+    difficulty: "Easy",
+    mine: false,
+  },
 ];
